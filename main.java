@@ -2,11 +2,6 @@ package java_package;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Scanner;
 import java.io.*;
 
@@ -46,6 +41,8 @@ public class main {
                 for(int i = login.length() + 1; i < c.length(); i++) {
                     if (c.charAt(i) == ' ')
                         break;
+                    if(pass.length() != c.length() - login.length() - 3)
+                        break;
                     if (c.charAt(i) != pass.charAt(i - login.length() - 1))
                         break;
                     if (i == login.length() + pass.length())
@@ -61,7 +58,8 @@ public class main {
     static void SignUp (String login, String pass) {
         try{
             FileWriter sw = new FileWriter("C:\\Users\\fraps\\IdeaProjects\\defPOlab1\\src\\java_package\\user_info.txt",true);
-            sw.write("\n" + login + " " + pass + " " + "1");
+            sw.write("\n");
+            sw.write(login + " " + pass + " " + "1");
             sw.close();
         }catch(Exception d){
             System.out.print(d.getMessage());
@@ -85,20 +83,67 @@ public class main {
         }
         return result;
     }
-    static void ChangePass (String pass, String newpass) {
-        String fileName = "user_info.txt";
-        String search = pass;
-        String replace = newpass;
-        Path path = Paths.get(fileName);
-        Charset charset = StandardCharsets.UTF_8;
-        Files.write("C:\\Users\\fraps\\IdeaProjects\\defPOlab1\\src\\java_package\\user_info.txt",
-                new String(Files.readAllBytes(path), charset).replace(search, replace)
-                        .getBytes(charset));
+    static void ChangePass (String pass, String newpass, String login) {
+        int j = 0;
+        String[] mass = new String[30];
+        String temp2 = "-";
+        try (BufferedReader fr = new BufferedReader(new FileReader("C:\\Users\\fraps\\IdeaProjects\\defPOlab1\\src\\java_package\\user_info.txt"))) {
+            String c;
+            while ((c = fr.readLine()) != null) {
+                for (int i = login.length() + 1; i < c.length(); i++) {
+                    if (c.charAt(i) == ' ')
+                        break;
+                    if (c.charAt(i) != pass.charAt(i - login.length() - 1))
+                        break;
+                    if (i == login.length() + pass.length())
+                        temp2 = c;
+                }
+                if (temp2 == "-")
+                    mass[j] = c;
+                if(temp2 == c) {
+                    c = login + " " + newpass + " " + "1";
+                    mass[j] = c;
+                    temp2 = "-";
+                }
+                j++;
+            }
+        } catch (IOException f) {
+            System.out.println("I/O Error: " + f);
+        }
+        try{
+            FileWriter sw = new FileWriter("C:\\Users\\fraps\\IdeaProjects\\defPOlab1\\src\\java_package\\user_info.txt");
+            BufferedWriter out1 = new BufferedWriter(sw);
+            out1.write("");
+            out1.close();
+        }catch(Exception d){
+            System.out.print(d.getMessage());
+        }
+        try{
+            FileWriter sw = new FileWriter("C:\\Users\\fraps\\IdeaProjects\\defPOlab1\\src\\java_package\\user_info.txt",true);
+            for (int i = 0; i < j; i++)
+                sw.write(mass[i] + "\n");
+                sw.close();
+        }catch(Exception d){
+            System.out.print(d.getMessage());
+        }
+    }
+    static void showlist () {
+        try (BufferedReader fr = new BufferedReader(new FileReader("C:\\Users\\fraps\\IdeaProjects\\defPOlab1\\src\\java_package\\user_info.txt"))) {
+            String c;
+            while ((c = fr.readLine()) != null)
+                for (int i = 0; i < c.length(); i++) {
+                    System.out.print(c.charAt(i));
+                    if (c.charAt(i) == ' ')
+                        break;
+                }
+        } catch (IOException e) {
+            System.out.println("I/O Error: " + e);
+        }
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        String login, pass;
+        String login, pass, newpass;
         int sww;
         int k=0;
         do {
@@ -113,7 +158,27 @@ public class main {
                         pass = sc.next();
                         if (SignIn(login, pass)) {
                             System.out.println("Hello " + login);
-
+                            System.out.println("'1' to change your pass");
+                            System.out.println("'2' to show list of users(admin only)");
+                            int dw;
+                            dw = sc.nextInt();
+                            switch (dw) {
+                                case 1:
+                                    String passcheck;
+                                    System.out.println("Enter your pass:");
+                                    passcheck = sc.next();
+                                    if(pass.equals(passcheck)) {
+                                        System.out.println("Enter new pass:");
+                                        newpass = sc.next();
+                                        ChangePass(pass, newpass, login);
+                                    }
+                                    else
+                                        System.out.println("Wrong pass");
+                                case 2:
+                                    if (SignIn(login, pass) && login.equals("admin")) {
+                                        showlist();
+                                    }
+                            }
                         }
                         k++;
                     } while (k != 3);
